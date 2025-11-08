@@ -4,3 +4,7 @@ node_modules/
 db/*.db
 .env
 .DS_Store
+
+# Helper files (not for repository)
+GITHUB_*.md
+*_INSTRUCTIONS.md
