@@ -8,3 +8,8 @@ db/*.db
 # Helper files (not for repository)
 GITHUB_*.md
 *_INSTRUCTIONS.md
+
+# Deployment configs (keep these)
+!railway.json
+!Procfile
+!vercel.json
