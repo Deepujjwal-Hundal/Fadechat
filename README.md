@@ -38,6 +38,18 @@ A fully independent private web-based messaging system that runs entirely on loc
 
 4. Open `http://localhost:3000` in your browser
 
+## Deployment
+
+⚠️ **Important**: FadeChat uses WebSockets and file-based storage, which are **not supported** on Vercel serverless functions.
+
+**Recommended platforms:**
+- **Railway** (recommended) - Supports WebSockets and persistent storage
+- **Render** - Full Node.js support with WebSockets
+- **Heroku** - Traditional hosting with all features
+- **DigitalOcean App Platform** - Modern platform with WebSocket support
+
+See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) for detailed deployment instructions.
+
 ## Usage
 
 1. **Registration**: Create a new account with a username (3-20 characters, alphanumeric + underscore) and password (minimum 4 characters)
