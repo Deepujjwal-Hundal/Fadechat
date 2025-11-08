@@ -1,0 +1,45 @@
+{
+  "name": "fadechat",
+  "version": "1.0.0",
+  "description": "Private web-based messaging system with disappearing messages",
+  "main": "server.js",
+  "bin": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build-exe": "pkg . --targets node18-win-x64 --output fadechat.exe",
+    "build": "pkg . --targets node18-win-x64 --output fadechat.exe"
+  },
+  "keywords": [
+    "chat",
+    "messaging",
+    "websocket",
+    "encryption"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "nedb": "^1.8.0",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "assets": [
+      "public/**/*",
+      "utils/**/*",
+      "db/**/*"
+    ],
+    "scripts": [
+      "server.js"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist"
+  }
+}

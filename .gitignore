@@ -1,0 +1,6 @@
+﻿# Node.js
+node_modules/
+*.exe
+db/*.db
+.env
+.DS_Store

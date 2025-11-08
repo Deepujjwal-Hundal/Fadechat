@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FadeChat - Private Messaging</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="auth-box animated-box">
+            <div class="logo-container">
+                <h1 class="logo-text">FadeChat</h1>
+                <div class="logo-icon">💬</div>
+            </div>
+            <p class="subtitle animated-text">Private messaging with disappearing messages</p>
+            
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="loginTab" onclick="showLogin()">
+                    <span>Login</span>
+                </button>
+                <button class="tab-btn" id="registerTab" onclick="showRegister()">
+                    <span>Register</span>
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" required autocomplete="username" minlength="3" maxlength="20" class="input-field">
+                    <small class="form-hint">3-20 characters</small>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required autocomplete="current-password" minlength="4" class="input-field">
+                    <small class="form-hint">Minimum 4 characters</small>
+                </div>
+                <button type="submit" class="btn-primary btn-hover-effect" id="loginBtn">
+                    <span class="btn-text">Login</span>
+                    <span class="btn-spinner" style="display: none;">⏳</span>
+                </button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" required autocomplete="username" minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" class="input-field">
+                    <small class="form-hint">3-20 characters (letters, numbers, underscores only)</small>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required autocomplete="new-password" minlength="4" class="input-field">
+                    <small class="form-hint">Minimum 4 characters</small>
+                </div>
+                <button type="submit" class="btn-primary btn-hover-effect" id="registerBtn">
+                    <span class="btn-text">Register</span>
+                    <span class="btn-spinner" style="display: none;">⏳</span>
+                </button>
+                <div id="registerError" class="error-message"></div>
+            </form>
+
+            <!-- Verification Modal -->
+            <div id="verificationModal" class="modal">
+                <div class="modal-content animated-modal">
+                    <h2>🔐 Verify Your Registration</h2>
+                    <p class="verification-info">Enter the verification code below:</p>
+                    <div id="verificationCodeDisplay" class="verification-code-display"></div>
+                    <form id="verificationForm">
+                        <div class="form-group">
+                            <label for="verificationCode">Verification Code</label>
+                            <input type="text" id="verificationCode" maxlength="6" pattern="[0-9]{6}" placeholder="000000" required class="input-field code-input">
+                            <small class="form-hint">Enter the 6-digit code</small>
+                        </div>
+                        <button type="submit" class="btn-primary btn-hover-effect" id="verifyBtn">
+                            <span class="btn-text">Verify</span>
+                            <span class="btn-spinner" style="display: none;">⏳</span>
+                        </button>
+                        <button type="button" class="btn-secondary btn-hover-effect" id="cancelVerifyBtn">Cancel</button>
+                        <div id="verificationError" class="error-message"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching with animation
+        function showLogin() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+        }
+
+        function showRegister() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+
+            registerForm.classList.add('active');
+            loginForm.classList.remove('active');
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+        }
+
+        // Add hover effects to inputs
+        document.querySelectorAll('.input-field').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = loginBtn.querySelector('.btn-text');
+            const btnSpinner = loginBtn.querySelector('.btn-spinner');
+            
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter both username and password';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline';
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    loginBtn.classList.add('success');
+                    setTimeout(() => window.location.href = '/chat', 300);
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.style.display = 'block';
+                    loginBtn.classList.add('error-shake');
+                    setTimeout(() => loginBtn.classList.remove('error-shake'), 500);
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Connection error. Please check if the server is running.';
+                errorDiv.style.display = 'block';
+            } finally {
+                loginBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+            }
+        });
+
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const errorDiv = document.getElementById('registerError');
+            const registerBtn = document.getElementById('registerBtn');
+            const btnText = registerBtn.querySelector('.btn-text');
+            const btnSpinner = registerBtn.querySelector('.btn-spinner');
+            
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter both username and password';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (username.length < 3 || username.length > 20) {
+                errorDiv.textContent = 'Username must be between 3 and 20 characters';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 4) {
+                errorDiv.textContent = 'Password must be at least 4 characters long';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                errorDiv.textContent = 'Username can only contain letters, numbers, and underscores';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            registerBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline';
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.requiresVerification) {
+                    showVerificationModal(username, data.verificationCode);
+                } else if (response.ok) {
+                    window.location.href = '/chat';
+                } else {
+                    errorDiv.textContent = data.error || 'Registration failed';
+                    errorDiv.style.display = 'block';
+                    registerBtn.classList.add('error-shake');
+                    setTimeout(() => registerBtn.classList.remove('error-shake'), 500);
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Connection error. Please check if the server is running.';
+                errorDiv.style.display = 'block';
+            } finally {
+                registerBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+            }
+        });
+
+        // Verification handling
+        let pendingUsername = null;
+
+        function showVerificationModal(username, code) {
+            pendingUsername = username;
+            const modal = document.getElementById('verificationModal');
+            const codeDisplay = document.getElementById('verificationCodeDisplay');
+            
+            codeDisplay.innerHTML = `
+                <div class="code-box">
+                    <strong>Your verification code:</strong>
+                    <div class="code-number">${code}</div>
+                    <small>This code expires in 10 minutes</small>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+            setTimeout(() => document.getElementById('verificationCode').focus(), 300);
+        }
+
+        function hideVerificationModal() {
+            const modal = document.getElementById('verificationModal');
+            modal.style.display = 'none';
+            pendingUsername = null;
+            document.getElementById('verificationCode').value = '';
+            document.getElementById('verificationError').textContent = '';
+        }
+
+        document.getElementById('cancelVerifyBtn').addEventListener('click', hideVerificationModal);
+
+        document.getElementById('verificationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('verificationCode').value.trim().replace(/\s/g, '');
+            const errorDiv = document.getElementById('verificationError');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const btnText = verifyBtn.querySelector('.btn-text');
+            const btnSpinner = verifyBtn.querySelector('.btn-spinner');
+
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+
+            if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) {
+                errorDiv.textContent = 'Please enter a valid 6-digit code';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (!pendingUsername) {
+                errorDiv.textContent = 'No pending verification. Please register again.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline';
+
+            try {
+                const response = await fetch('/api/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username: pendingUsername, code: code })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.verified) {
+                    verifyBtn.classList.add('success');
+                    setTimeout(() => {
+                        hideVerificationModal();
+                        window.location.href = '/chat';
+                    }, 300);
+                } else {
+                    errorDiv.textContent = data.error || 'Verification failed';
+                    errorDiv.style.display = 'block';
+                    verifyBtn.classList.add('error-shake');
+                    setTimeout(() => verifyBtn.classList.remove('error-shake'), 500);
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Connection error. Please check if the server is running.';
+                errorDiv.style.display = 'block';
+            } finally {
+                verifyBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+            }
+        });
+
+        // Auto-format verification code
+        document.getElementById('verificationCode').addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+        });
+    </script>
+</body>
+</html>
